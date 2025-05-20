@@ -1,0 +1,233 @@
+basePath: /
+definitions:
+  models.Author:
+    properties:
+      books:
+        items:
+          $ref: '#/definitions/models.Book'
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.Book:
+    properties:
+      author:
+        $ref: '#/definitions/models.Author'
+      author_id:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.CreateAuthorRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  models.CreateBookRequest:
+    properties:
+      author_id:
+        example: 1
+        type: integer
+      name:
+        example: Война и мир
+        type: string
+    type: object
+  models.Rental:
+    properties:
+      book_id:
+        type: integer
+      rented_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      rented_books:
+        items:
+          $ref: '#/definitions/models.Book'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: Korotallie@gmail.com
+    name: Nikolay Korotaev
+    url: http://localhost:8080
+  description: API для библиотеки с суперсервисами и фасадом. Выдача, возврат, авторы
+    и книги.
+  title: Library API
+  version: "1.0"
+paths:
+  /authors:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Author'
+            type: array
+      summary: Получить список всех авторов
+      tags:
+      - authors
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Автор
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAuthorRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Author'
+        "400":
+          description: Неверный ввод
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      summary: Добавить нового автора
+      tags:
+      - authors
+  /books:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Book'
+            type: array
+      summary: Получить список всех книг
+      tags:
+      - books
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Книга
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Book'
+        "400":
+          description: Неверные данные
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      summary: Добавить новую книгу
+      tags:
+      - books
+  /library/return:
+    post:
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: ID книги
+        in: query
+        name: book_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Книга успешно возвращена
+          schema:
+            type: string
+        "400":
+          description: Неверные параметры
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      summary: Вернуть книгу
+      tags:
+      - library
+  /library/take:
+    post:
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: ID книги
+        in: query
+        name: book_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Книга успешно выдана
+          schema:
+            type: string
+        "400":
+          description: Неверные параметры
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      summary: Выдать книгу пользователю
+      tags:
+      - library
+  /users/subquery:
+    get:
+      description: Возвращает всех пользователей, включая арендуемые ими книги
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Не удалось получить пользователей
+          schema:
+            type: string
+      summary: Получить всех пользователей с книгами (через подзапросы)
+      tags:
+      - users
+swagger: "2.0"
