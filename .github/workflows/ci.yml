@@ -35,9 +35,8 @@ jobs:
 
       - name: Install goose
         run: |
-          wget https://github.com/pressly/goose/releases/download/v3.13.0/goose_linux_amd64.zip
-          unzip goose_linux_amd64.zip
-          sudo mv goose /usr/local/bin
+          go install github.com/pressly/goose/v3/cmd/goose@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
 
       - name: Run Goose migrations
         run: |
