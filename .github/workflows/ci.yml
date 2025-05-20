@@ -1,0 +1,54 @@
+name: Go CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: library
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Install goose
+        run: |
+          wget https://github.com/pressly/goose/releases/download/v3.13.0/goose_linux_amd64.zip
+          unzip goose_linux_amd64.zip
+          sudo mv goose /usr/local/bin
+
+      - name: Run Goose migrations
+        run: |
+          cd Library
+          goose -dir migrations postgres "postgres://postgres:postgres@localhost:5432/library?sslmode=disable" up
+
+      - name: Build app
+        run: |
+          cd Library
+          go build -v -o bin/library ./cmd
+
+      - name: Docker build
+        run: |
+          docker build -t library-app .
